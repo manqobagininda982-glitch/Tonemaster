@@ -1,0 +1,10 @@
+{
+  "name": "tonemaster-mg-sounds",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ToneMaster by MG:SOUNDS web application",
+  "engines": { "node": ">=20" },
+  "scripts": { "check": "node tools/check-project.mjs" },
+  "dependencies": { "@supabase/supabase-js": "2.119.1" }
+}

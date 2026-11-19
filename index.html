@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#111815">
+  <title>ToneMaster · MG:SOUNDS</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-group">
+        <img src="./assets/logo.svg" alt="ToneMaster by MG:SOUNDS" style="height:40px;width:auto;display:block;border-radius:8px;">
+        <div class="brand-sub" id="engineSummary">Initializing engine...</div>
+      </div>
+
+      <nav class="main-nav" aria-label="Primary Navigation">
+        <button class="nav-btn active" data-view="play">Perform</button>
+        <button class="nav-btn" data-view="library">My Sounds</button>
+        <button class="nav-btn" data-view="downloads">Download Sounds</button>
+        <button class="nav-btn" data-view="licence">Licence</button>
+        <button class="nav-btn" data-view="settings">Settings</button>
+      </nav>
+
+      <div class="status-cluster">
+        <span id="midiPill" class="status-pill warn" title="USB MIDI Status">
+          <span class="dot"></span>
+          <span id="midiPillText">MIDI: Off</span>
+        </span>
+        <button id="btnMidiConnect" class="btn btn-sm btn-outline">Connect MIDI</button>
+        <span id="licencePill" class="status-pill warn">Unactivated</span>
+        <button id="btnPanic" class="btn btn-sm btn-danger" title="Stop all sounding notes immediately">Panic</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section id="view-play" class="view active">
+        <div class="perform-grid">
+          <div class="card control-bar">
+            <div class="mode-group">
+              <span class="field-label">Playing Mode</span>
+              <div id="modeButtons" class="segmented">
+                <button class="seg-btn active" data-mode="single">Single</button>
+                <button class="seg-btn" data-mode="dual">Dual</button>
+                <button class="seg-btn" data-mode="split">Split</button>
+                <button class="seg-btn" data-mode="main_dual">Main + Dual</button>
+                <button class="seg-btn" data-mode="main_split">Main + Split</button>
+              </div>
+            </div>
+            <div class="quick-strip-wrap">
+              <span class="field-label">Quick Instrument Switch (Active Layer)</span>
+              <div id="quickInstrumentBar" class="quick-strip"></div>
+            </div>
+          </div>
+
+          <div class="layers-grid" id="layersContainer"></div>
+
+          <div class="card console-panel">
+            <div class="console-header">
+              <h3>Master &amp; Keyboard Controls</h3>
+              <div class="sustain-cluster">
+                <button id="btnSustain" class="btn btn-sm btn-outline" aria-pressed="false">Sustain: OFF</button>
+                <span id="midiActivityLed" class="activity-led" title="MIDI Note Activity"></span>
+                <span id="voiceCountBadge" class="badge">Voices: 0</span>
+              </div>
+            </div>
+            <div class="faders-grid">
+              <div class="fader-box">
+                <label for="masterVol">Master Vol <span id="masterVolVal" class="val">85%</span></label>
+                <input id="masterVol" type="range" min="0" max="100" value="85">
+              </div>
+              <div class="fader-box">
+                <label for="eqBass">Bass <span id="eqBassVal" class="val">0 dB</span></label>
+                <input id="eqBass" type="range" min="-12" max="18" step="0.5" value="0">
+              </div>
+              <div class="fader-box">
+                <label for="eqTreble">Treble <span id="eqTrebleVal" class="val">0 dB</span></label>
+                <input id="eqTreble" type="range" min="-12" max="18" step="0.5" value="0">
+              </div>
+              <div class="fader-box">
+                <label for="eqBright">Brightness <span id="eqBrightVal" class="val">0 dB</span></label>
+                <input id="eqBright" type="range" min="-12" max="18" step="0.5" value="0">
+              </div>
+              <div class="fader-box">
+                <label for="globalTranspose">Transpose <span id="globalTransposeVal" class="val">0 st</span></label>
+                <input id="globalTranspose" type="range" min="-12" max="12" value="0">
+              </div>
+              <div class="fader-box">
+                <label for="globalOctave">Octave <span id="globalOctaveVal" class="val">0</span></label>
+                <input id="globalOctave" type="range" min="-3" max="3" value="0">
+              </div>
+              <div class="fader-box">
+                <label for="globalRelease">Release <span id="globalReleaseVal" class="val">140 ms</span></label>
+                <input id="globalRelease" type="range" min="20" max="1500" step="10" value="140">
+              </div>
+              <div class="fader-box">
+                <label for="splitPoint">Split Point <span id="splitPointVal" class="val">F#3 (54)</span></label>
+                <input id="splitPoint" type="range" min="36" max="84" value="54">
+              </div>
+            </div>
+          </div>
+
+          <div class="card keyboard-card">
+            <div class="kbd-toolbar">
+              <span class="field-label">Monitor Keyboard <small>(Primary playing via USB OTG MIDI)</small></span>
+              <div class="kbd-actions">
+                <label class="inline-label">Vel <input id="virtualVelocity" type="range" min="20" max="127" value="105"></label>
+                <button id="kbdOctDown" class="btn btn-sm btn-outline">Oct -</button>
+                <span id="kbdOctLabel" class="badge">C3–C5</span>
+                <button id="kbdOctUp" class="btn btn-sm btn-outline">Oct +</button>
+              </div>
+            </div>
+            <div id="keyboard" class="keyboard" aria-label="Monitor Keyboard"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-library" class="view">
+        <div class="card">
+          <div class="section-head">
+            <div>
+              <h2>Installed Sounds (Offline Ready)</h2>
+              <p class="muted">Downloaded instruments are encrypted at rest inside private app storage. Raw WAV export is disabled.</p>
+            </div>
+            <div class="head-actions">
+              <span id="storagePill" class="status-pill">Storage: Checking...</span>
+              <span id="libraryTotalBadge" class="badge">0 Instruments · 0 Samples</span>
+            </div>
+          </div>
+          <div id="libraryList" class="library-grid"></div>
+        </div>
+      </section>
+
+      <section id="view-downloads" class="view">
+        <div class="two-col">
+          <div class="card">
+            <h2>MG:SOUNDS Account &amp; Database Connection</h2>
+            <p class="muted">Sign in with your MG:SOUNDS customer account to view and download official sound packs published by Admin.</p>
+            <div class="form-stack">
+              <label>Database Handler Mode
+                <select id="dbProvider">
+                  <option value="supabase">Supabase Free Handler (Auth + Postgres + Storage)</option>
+                  <option value="custom_worker">Custom / Cloudflare R2 Worker Endpoint</option>
+                </select>
+              </label>
+              <label>Project / Worker Base URL
+                <input id="dbUrl" type="url" placeholder="https://your-project.supabase.co">
+              </label>
+              <label>Public Anon Key (Supabase) / App Token
+                <input id="dbAnonKey" type="text" placeholder="eyJhbGciOiJIUzI1NiIs...">
+              </label>
+              <div class="two-col">
+                <label>Customer Email
+                  <input id="authEmail" type="email" autocomplete="email" placeholder="musician@example.com">
+                </label>
+                <label>Password
+                  <input id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
+                </label>
+              </div>
+              <div class="action-row">
+                <button id="btnDbSignIn" class="btn btn-primary">Sign In &amp; Sync Catalog</button>
+                <button id="btnDbSignUp" class="btn btn-outline">Create Account</button>
+                <button id="btnDbRefreshCatalog" class="btn btn-outline">Refresh Sound List</button>
+                <button id="btnDbSignOut" class="btn btn-sm btn-danger hidden">Sign Out</button>
+              </div>
+              <div id="dbAuthStatus" class="status-msg">Not connected yet.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h2>Available Sound Packs</h2>
+                <p class="muted small">Download each bank once. Installed sounds remain available offline.</p>
+              </div>
+              <button id="btnDownloadAllMissing" class="btn btn-sm btn-primary">Download All Missing</button>
+            </div>
+            <div id="downloadProgressWrap" class="progress-wrap hidden">
+              <div class="progress-track"><div id="downloadProgressBar" class="progress-fill"></div></div>
+              <div id="downloadProgressText" class="muted small">Downloading...</div>
+            </div>
+            <div id="cloudCatalogList" class="library-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-licence" class="view">
+        <div class="two-col">
+          <div class="card">
+            <h2>ToneMaster Licence (R250)</h2>
+            <p class="muted">ToneMaster uses offline ECDSA P-256 cryptographic licence verification bound to this device. Send your Device Token to MG:SOUNDS to receive your signed licence.</p>
+            <div class="token-box">
+              <span class="field-label">This Device Binding Token</span>
+              <code id="deviceTokenDisplay">Generating...</code>
+              <button id="btnCopyDeviceToken" class="btn btn-sm btn-outline">Copy Token</button>
+            </div>
+            <div id="licenceDetailsCard" class="info-box"></div>
+          </div>
+
+          <div class="card">
+            <h2>Activate / Transfer Licence</h2>
+            <div class="form-stack">
+              <label>Paste Signed Licence JSON
+                <textarea id="licencePayloadInput" rows="5" placeholder='{"v":1,"product":"TONEMASTER-MG","priceZar":250,...}'></textarea>
+              </label>
+              <label>Or Load <code>.tmlic</code> Licence File
+                <input id="licenceFileInput" type="file" accept=".tmlic,.json,.txt">
+              </label>
+              <button id="btnActivateLicence" class="btn btn-primary">Verify &amp; Activate Licence</button>
+              <div id="licenceError" class="status-msg"></div>
+            </div>
+            <hr class="sep">
+            <h3>Authorised Device Replacement</h3>
+            <p class="muted small">Changing phones? Generate a deactivation receipt and send it to MG:SOUNDS so your R250 licence can be re-issued for your new device.</p>
+            <button id="btnDeactivateTransfer" class="btn btn-sm btn-danger">Deactivate &amp; Generate Transfer Receipt</button>
+            <pre id="transferReceiptOut" class="code-out hidden"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="card">
+          <h2>Audio, MIDI &amp; Storage Settings</h2>
+          <div class="settings-grid">
+            <label>MIDI Input Channel Filter
+              <select id="settingMidiChannel">
+                <option value="0">All Channels (Omni)</option>
+                <option value="1">Channel 1</option>
+                <option value="2">Channel 2</option>
+                <option value="3">Channel 3</option>
+                <option value="4">Channel 4</option>
+                <option value="5">Channel 5</option>
+                <option value="6">Channel 6</option>
+                <option value="7">Channel 7</option>
+                <option value="8">Channel 8</option>
+                <option value="9">Channel 9</option>
+                <option value="10">Channel 10</option>
+                <option value="11">Channel 11</option>
+                <option value="12">Channel 12</option>
+                <option value="13">Channel 13</option>
+                <option value="14">Channel 14</option>
+                <option value="15">Channel 15</option>
+                <option value="16">Channel 16</option>
+              </select>
+            </label>
+            <label>Decoded Audio RAM Cache Limit (for 4 GB Phones)
+              <select id="settingCacheMb">
+                <option value="96">96 MB (Low RAM Safe)</option>
+                <option value="160" selected>160 MB (Balanced)</option>
+                <option value="256">256 MB (High Performance)</option>
+              </select>
+            </label>
+            <label>Default Marker #1 Root Note
+              <select id="settingDefaultRoot">
+                <option value="24">C1 (24)</option>
+                <option value="36" selected>C2 (36)</option>
+                <option value="48">C3 (48)</option>
+                <option value="60">C4 (60)</option>
+              </select>
+            </label>
+            <label>Max Polyphony Voices
+              <select id="settingMaxVoices">
+                <option value="24">24 Voices</option>
+                <option value="36" selected>36 Voices</option>
+                <option value="48">48 Voices</option>
+              </select>
+            </label>
+          </div>
+          <div id="platformDiagnostics" class="info-box"></div>
+          <div class="action-row">
+            <button id="btnEnableAudio" class="btn btn-primary">Resume / Test Audio Engine</button>
+            <button id="btnVerifyLibrary" class="btn btn-outline">Verify Downloaded Samples</button>
+            <button id="btnResetSettings" class="btn btn-outline">Reset Preferences to Default</button>
+          </div>
+          <div id="recoveryStatus" class="status-msg"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
